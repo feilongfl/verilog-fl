@@ -1,4 +1,4 @@
-baseURL = 'http://hdl.feilong.uk'
+baseURL = 'https://feilongfl.github.io/verilog-fl/'
 languageCode = 'en-us'
 title = 'verilog fishladder'
 theme = 'hugo-theme-relearn'
