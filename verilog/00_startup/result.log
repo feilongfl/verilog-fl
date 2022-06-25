@@ -1,0 +1,23 @@
+make -f makefile results.xml
+make[1]: 进入目录“/home/feilong/Program-ext/chiplearn/verilog/00_startup”
+mkdir -p sim_build
+/usr/bin/iverilog -o sim_build/sim.vvp -D COCOTB_SIM=1 -s top_module -f sim_build/cmds.f -g2012   /home/feilong/Program-ext/chiplearn/verilog/00_startup/example.sv
+MODULE=test TESTCASE= TOPLEVEL=top_module TOPLEVEL_LANG=verilog \
+         /usr/bin/vvp -M /usr/lib/python3.10/site-packages/cocotb/libs -m libcocotbvpi_icarus   sim_build/sim.vvp 
+     -.--ns INFO     cocotb.gpi                         ..mbed/gpi_embed.cpp:76   in set_program_name_in_venv        Did not detect Python virtual environment. Using system-wide Python interpreter
+     -.--ns INFO     cocotb.gpi                         ../gpi/GpiCommon.cpp:99   in gpi_print_registered_impl       VPI registered
+     0.00ns INFO     Running on Icarus Verilog version 11.0 (stable)
+     0.00ns INFO     Running tests with cocotb v1.6.1 from /usr/lib/python3.10/site-packages/cocotb
+     0.00ns INFO     Seeding Python random module with 1656196983
+     0.00ns INFO     Found test test.test
+     0.00ns INFO     running test (1/1)
+    12.00ns INFO     test passed
+    12.00ns INFO     **************************************************************************************
+                     ** TEST                          STATUS  SIM TIME (ns)  REAL TIME (s)  RATIO (ns/s) **
+                     **************************************************************************************
+                     ** test.test                      PASS          12.00           0.02        534.06  **
+                     **************************************************************************************
+                     ** TESTS=1 PASS=1 FAIL=0 SKIP=0                 12.00           0.07        172.94  **
+                     **************************************************************************************
+                     
+make[1]: 离开目录“/home/feilong/Program-ext/chiplearn/verilog/00_startup”
