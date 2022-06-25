@@ -1,0 +1,26 @@
+baseURL = 'http://example.org/'
+languageCode = 'en-us'
+title = 'verilog fishladder'
+theme = 'hugo-theme-relearn'
+defaultContentLanguage = "en"
+
+[params]
+  description = "A simple way to learn Verilog HDL"
+
+[languages]
+  [languages.en]
+    weight = 1
+    languageName = "English"
+  [languages.zh-cn]
+    weight = 2
+    languageName = "简体中文"
+  [languages.zh-tw]
+    weight = 3
+    languageName = "繁體中文"
+  [languages.jp]
+    weight = 4
+    languageName = "日本語"
+
+# For search functionality
+[outputs]
+home = [ "HTML", "RSS", "JSON"]
