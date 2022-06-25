@@ -1,3 +1,5 @@
 results.xml
 sim_build
 __pycache__
+trace.json
+trace.svg
