@@ -1,8 +1,9 @@
 
-import wave
+# import wave
 import cocotb
 from cocotb.triggers import Timer
 from cocotb.wavedrom import trace
+import wavedrom
 
 
 async def test_map(dut, val):
@@ -24,6 +25,11 @@ async def generate_clock(dut):
         await Timer(1, units="ns")
 
 
+async def WavedromWrite(json, name):
+    svg = wavedrom.render(json)
+    svg.saveas(name)
+
+
 @cocotb.test()
 async def test(dut):
     """Try accessing the design."""
@@ -42,4 +48,5 @@ async def test(dut):
 
         # j = waves.dumpj()
         # print(j)
-        waves.write("trace.json")
+        # waves.write("trace.json")
+        await WavedromWrite(waves.dumpj(), "trace.svg")

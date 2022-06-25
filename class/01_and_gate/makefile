@@ -16,12 +16,12 @@ TOPLEVEL = top_module
 # MODULE is the basename of the Python test file
 MODULE = test
 
-top: trace.svg
+# top: trace.svg
 
-trace.svg: trace.json
-	wavedrom-cli -i trace.json -s trace.svg
+# trace.svg: trace.json
+# 	wavedrom-cli -i trace.json -s trace.svg
 
-trace.json: all
+# trace.json: all
 
 # include cocotb's make rules to take care of the simulator setup
 include $(shell cocotb-config --makefiles)/Makefile.sim
