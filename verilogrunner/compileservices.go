@@ -3,6 +3,7 @@ package verilogrunner
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -81,29 +82,25 @@ func (cvr CompileVerilogReq) processPing(id uuid.UUID) *CompileVerilogResp {
 	return ret
 }
 
-func (cvr CompileVerilogReq) processExecCompile(ws *websocket.Conn, id uuid.UUID, path string) *CompileVerilogResp {
+func (cvr CompileVerilogReq) processExecCompile(ws *websocket.Conn, id uuid.UUID, lid string, path string) *CompileVerilogResp {
 	var err error
-	cmd := exec.Command("make", "-C", path)
+	var stdmsg bytes.Buffer
+
+	cmdstr := fmt.Sprintf(`cp -rv verilog/00_startup %s && make -C %s`, path, path)
+	log.Println(cmdstr)
+
+	// cmd := exec.Command("make", "-C", path)
+	cmd := exec.Command("sh", "-c", cmdstr)
 	log.Println(cmd.String())
 
-	cmd.Stdout, err = ws.NextWriter(websocket.TextMessage)
-	if err != nil {
-		return &CompileVerilogResp{
-			Command: CompileVerilogReqCommand_Error,
-			Data:    "websocket stdout writter error",
-			ID:      id.String(),
-			exec:    true,
-		}
-	}
-
-	var stderrmsg bytes.Buffer
-	cmd.Stderr = &stderrmsg
+	cmd.Stdout = &stdmsg
+	cmd.Stderr = &stdmsg
 
 	err = cmd.Run()
 	if err != nil {
 		ws.WriteJSON(&CompileVerilogResp{
 			Command: CompileVerilogReqCommand_Buildlog,
-			Data:    stderrmsg.String(),
+			Data:    stdmsg.String(),
 			ID:      id.String(),
 			exec:    true,
 		})
@@ -124,9 +121,32 @@ func (cvr CompileVerilogReq) processExecCompile(ws *websocket.Conn, id uuid.UUID
 	}
 }
 
-func (cvr CompileVerilogReq) processExec(ws *websocket.Conn, id uuid.UUID) *CompileVerilogResp {
+func LesssonIDCheck(lid string, ok bool) error {
+	if !ok {
+		return errors.New("lid error")
+	}
+
+	// fixme: not safe
+	return nil
+}
+
+func (cvr CompileVerilogReq) processExec(ws *websocket.Conn, id uuid.UUID, c *gin.Context) *CompileVerilogResp {
 	if cvr.exec {
 		return cvr.processError(id, "already run")
+	}
+
+	// get folder
+	lesssonID, ok := c.GetQuery("lid")
+	log.Printf("[%s] lid: %s\n", id.String(), lesssonID)
+	err := LesssonIDCheck(lesssonID, ok)
+	if err != nil {
+		log.Printf("[%s] error: %s\n", id.String(), err.Error())
+		return &CompileVerilogResp{
+			Command: CompileVerilogReqCommand_Error,
+			Data:    "lid not correct",
+			ID:      id.String(),
+			exec:    true,
+		}
 	}
 
 	// parse data to sv
@@ -135,7 +155,7 @@ func (cvr CompileVerilogReq) processExec(ws *websocket.Conn, id uuid.UUID) *Comp
 	// mkdir
 	path := filepath.Join(".", buildpath, id.String())
 	log.Printf("[%s] mkdir: %s\n", id.String(), path)
-	err := os.MkdirAll(path, os.ModePerm)
+	err = os.MkdirAll(path, os.ModePerm)
 	if err != nil {
 		log.Printf("[%s] error: %s\n", id.String(), err.Error())
 		return &CompileVerilogResp{
@@ -156,7 +176,7 @@ func (cvr CompileVerilogReq) processExec(ws *websocket.Conn, id uuid.UUID) *Comp
 	// }()
 
 	// storage file
-	err = ioutil.WriteFile("output.txt", []byte(sv), 0644)
+	err = ioutil.WriteFile(filepath.Join(path, "user.sv"), []byte(sv), 0644)
 	if err != nil {
 		log.Printf("[%s] error: %s\n", id.String(), err.Error())
 		return &CompileVerilogResp{
@@ -168,7 +188,7 @@ func (cvr CompileVerilogReq) processExec(ws *websocket.Conn, id uuid.UUID) *Comp
 	}
 
 	// run build command
-	return cvr.processExecCompile(ws, id, path)
+	return cvr.processExecCompile(ws, id, lesssonID, path)
 }
 
 func (cvr CompileVerilogReq) processError(id uuid.UUID, msg string) *CompileVerilogResp {
@@ -182,7 +202,7 @@ func (cvr CompileVerilogReq) processError(id uuid.UUID, msg string) *CompileVeri
 	return ret
 }
 
-func (cvr CompileVerilogReq) process(ws *websocket.Conn, id uuid.UUID) *CompileVerilogResp {
+func (cvr CompileVerilogReq) process(ws *websocket.Conn, id uuid.UUID, c *gin.Context) *CompileVerilogResp {
 	switch cvr.Command {
 	case CompileVerilogReqCommand_Ping:
 		return cvr.processPing(id)
@@ -191,7 +211,7 @@ func (cvr CompileVerilogReq) process(ws *websocket.Conn, id uuid.UUID) *CompileV
 		if cvr.exec {
 			return cvr.processError(id, "already run")
 		} else {
-			return cvr.processExec(ws, id)
+			return cvr.processExec(ws, id, c)
 		}
 
 	default:
@@ -199,7 +219,7 @@ func (cvr CompileVerilogReq) process(ws *websocket.Conn, id uuid.UUID) *CompileV
 	}
 }
 
-func (vr *VerilogRunner) processCompileVerilog(ws *websocket.Conn) error {
+func (vr *VerilogRunner) processCompileVerilog(ws *websocket.Conn, c *gin.Context) error {
 	id := uuid.Must(uuid.NewRandom())
 	exec := false // only trig once
 
@@ -213,7 +233,7 @@ func (vr *VerilogRunner) processCompileVerilog(ws *websocket.Conn) error {
 		req.exec = req.exec || exec
 
 		fmt.Println(req)
-		resp := req.process(ws, id)
+		resp := req.process(ws, id, c)
 		fmt.Println(resp)
 		exec = exec || resp.exec
 
@@ -249,7 +269,7 @@ func (vr *VerilogRunner) CompileVerilog(c *gin.Context) {
 		}
 	}()
 
-	err = vr.processCompileVerilog(ws)
+	err = vr.processCompileVerilog(ws, c)
 	if err != nil {
 		panic(err)
 	}
