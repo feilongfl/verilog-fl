@@ -7,7 +7,7 @@ import (
 )
 
 func (vr *VerilogRunner) addRouteCompiler() {
-	vr.server.POST("/compile", vr.CompileVerilog)
+	vr.server.Group("/compile").GET("", vr.CompileVerilog)
 }
 
 func (vr *VerilogRunner) addRouteStatic() {
