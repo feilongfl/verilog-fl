@@ -4,9 +4,9 @@ go 1.18
 
 require (
 	github.com/gin-gonic/gin v1.8.1
+	github.com/google/uuid v1.1.2
 	github.com/gorilla/websocket v1.5.0
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/pengsrc/go-shared v0.2.0
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0
 )
