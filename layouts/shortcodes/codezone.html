@@ -1,0 +1,35 @@
+<div id="userzone">
+    <div class="tab-panel">
+        <div class="tab-nav">
+            <button data-tab-item="input" data-tab-group="usercode" onclick="switchTab('usercode', 'input')"
+                class="tab-nav-button active"><span>Input</span></button>
+            <button data-tab-item="build" data-tab-group="usercode" onclick="switchTab('usercode', 'build')"
+                class="tab-nav-button"><span>Build Log</span></button>
+            <button data-tab-item="timing" data-tab-group="usercode" onclick="switchTab('usercode', 'timing')"
+                class="tab-nav-button"><span>Timing</span></button>
+            <button data-tab-item="example" data-tab-group="usercode" onclick="switchTab('usercode', 'example')"
+                class="tab-nav-button"><span>Example
+                    Answer</span></button>
+        </div>
+        <div class="tab-content">
+            <div data-tab-item="input" data-tab-group="usercode" class="tab-item active">
+                <textarea type="text" id="useranswer" cols="80" rows="15"></textarea>
+            </div>
+            <div data-tab-item="build" data-tab-group="usercode" class="tab-item">
+                {{ printf "```\n%s\n```" (printf "%s/%s" (index .Params 0) "result.log" | readFile) | markdownify }}
+            </div>
+            <div data-tab-item="timing" data-tab-group="usercode" class="tab-item">
+                {{ printf "%s/%s" (index .Params 0) "trace.svg" | readFile | safeHTML}}
+            </div>
+            <div data-tab-item="example" data-tab-group="usercode" class="tab-item">
+                {{ printf "<script src=\"%s%s/%s\"></script>" "https://emgithub.com/embed.js?style=github&showBorder=on&showLineNumbers=on&showFileMeta=on&showCopy=on&target=https%3A%2F%2Fgithub.com%2Ffeilongfl%2Fverilog-fl%2Fblob%2Fmain" (index .Params 0) "example.sv" | safeHTML }}
+            </div>
+        </div>
+    </div>
+    <span class="btn cstyle tip">
+        <a>
+            <i class="fa-fw fas fa-play"></i>
+            Run
+        </a>
+    </span>
+</div>
